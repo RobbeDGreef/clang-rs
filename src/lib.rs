@@ -1796,43 +1796,79 @@ impl<'cmds> CompileCommand<'cmds> {
 
 // Binary operator kind __________________________
 
+
+
 /// Indicates a kind of binary operator.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub enum BinaryOperatorKind {
+    /// This value describes cursors which are not binary operators.
     Invalid = 0,
+    /// C++ Pointer - to - member operator.
     PtrMemD = 1,
+    /// C++ Pointer - to - member operator.
     PtrMemI = 2,
+    /// Multiplication operator.
     Mul = 3,
+    /// Division operator.
     Div = 4,
+    /// Remainder operator.
     Rem = 5,
+    /// Addition operator.
     Add = 6,
+    /// Subtraction operator.
     Sub = 7,
+    /// Bitwise shift left operator.
     Shl = 8,
+    /// Bitwise shift right operator.
     Shr = 9,
+    /// C++ three-way comparison (spaceship) operator.
     Cmp = 10,
+    /// Less than operator.
     LT = 11,
+    /// Greater than operator.
     GT = 12,
+    /// Less or equal operator.
     LE = 13,
+    /// Greater or equal operator.
     GE = 14,
+    /// Equal operator.
     EQ = 15,
+    /// Not equal operator.
     NE = 16,
+    /// Bitwise AND operator.
     And = 17,
+    /// Bitwise XOR operator.
     Xor = 18,
+    /// Bitwise OR operator.
     Or = 19,
+    /// Logical AND operator.
     LAnd = 20,
+    /// Logical OR operator.
     LOr = 21,
+    /// Assignment operator.
     Assign = 22,
+    /// Multiplication assignment operator.
     MulAssign = 23,
+    /// Division assignment operator.
     DivAssign = 24,
+    /// Remainder assignment operator.
     RemAssign = 25,
+    /// Addition assignment operator.
     AddAssign = 26,
+    /// Subtraction assignment operator.
     SubAssign = 27,
+    /// Bitwise shift left assignment operator.
     ShlAssign = 28,
+    /// Bitwise shift right assignment operator.
     ShrAssign = 29,
+    /// Bitwise AND assignment operator.
     AndAssign = 30,
+    /// Bitwise XOR assignment operator.
     XorAssign = 31,
+    /// Bitwise OR assignment operator.
     OrAssign = 32,
+    /// Comma operator.
     Comma = 33,
 }
 
