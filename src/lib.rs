@@ -1796,8 +1796,6 @@ impl<'cmds> CompileCommand<'cmds> {
 
 // Binary operator kind __________________________
 
-
-
 /// Indicates a kind of binary operator.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
@@ -1882,6 +1880,57 @@ impl BinaryOperatorKind {
 
     fn from_raw_infallible(raw: c_int) -> Self {
         Self::from_raw(raw).unwrap_or(BinaryOperatorKind::Invalid)
+    }
+}
+
+// Unary operator ________________________________
+
+/// Indicates a kind of unary operator.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(C)]
+pub enum UnaryOperatorKind {
+    /// This value describes cursors which are not unary operators.
+    Invalid = 0,
+    /// Postfix increment operator.
+    PostInc = 1,
+    /// Postfix decrement operator.
+    PostDec = 2,
+    /// Prefix increment operator.
+    PreInc = 3,
+    /// Prefix decrement operator.
+    PreDec = 4,
+    /// Address of operator.
+    AddrOf = 5,
+    /// Dereference operator.
+    Deref = 6,
+    /// Plus operator.
+    Plus = 7,
+    /// Minus operator.
+    Minus = 8,
+    /// Not operator.
+    Not = 9,
+    /// LNot operator.
+    LNot = 10,
+    /// "__real expr" operator.
+    Real = 11,
+    /// "__imag expr" operator.
+    Imag = 12,
+    /// extension marker operator.
+    Extension = 13,
+    /// C++ co_await operator.
+    Coawait = 14,
+}
+
+impl UnaryOperatorKind {
+    fn from_raw(raw: c_int) -> Option<Self> {
+        match raw {
+            1..=14 => Some(unsafe { mem::transmute(raw) }),
+            _ => None,
+        }
+    }
+
+    fn from_raw_infallible(raw: c_int) -> Self {
+        Self::from_raw(raw).unwrap_or(UnaryOperatorKind::Invalid)
     }
 }
 
@@ -2438,6 +2487,12 @@ impl<'tu> Entity<'tu> {
     /// Retrieve the binary operator kind of the current entity.
     pub fn get_binary_operator(&self) -> Option<BinaryOperatorKind> {
         unsafe { BinaryOperatorKind::from_raw(clang_getCursorBinaryOperatorKind(self.raw)) }
+    } 
+
+    #[cfg(feature="clang_17_0")]
+    /// Retrieve the unary operator kind of the current entity.
+    pub fn get_unary_operator(&self) -> Option<UnaryOperatorKind> {
+        unsafe { UnaryOperatorKind::from_raw(clang_getCursorUnaryOperatorKind(self.raw)) }
     } 
 
     /// Returns whether this AST entity has any attached attributes.
