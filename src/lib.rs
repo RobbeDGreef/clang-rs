@@ -1794,6 +1794,61 @@ impl<'cmds> CompileCommand<'cmds> {
     // TODO: Args, mapped source path, mapped sourth context.
 }
 
+// Binary operator kind __________________________
+
+/// Indicates a kind of binary operator.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[repr(C)]
+pub enum BinaryOperatorKind {
+    Invalid = 0,
+    PtrMemD = 1,
+    PtrMemI = 2,
+    Mul = 3,
+    Div = 4,
+    Rem = 5,
+    Add = 6,
+    Sub = 7,
+    Shl = 8,
+    Shr = 9,
+    Cmp = 10,
+    LT = 11,
+    GT = 12,
+    LE = 13,
+    GE = 14,
+    EQ = 15,
+    NE = 16,
+    And = 17,
+    Xor = 18,
+    Or = 19,
+    LAnd = 20,
+    LOr = 21,
+    Assign = 22,
+    MulAssign = 23,
+    DivAssign = 24,
+    RemAssign = 25,
+    AddAssign = 26,
+    SubAssign = 27,
+    ShlAssign = 28,
+    ShrAssign = 29,
+    AndAssign = 30,
+    XorAssign = 31,
+    OrAssign = 32,
+    Comma = 33,
+}
+
+impl BinaryOperatorKind {
+    fn from_raw(raw: c_int) -> Option<Self> {
+        match raw {
+            1..=33 => Some(unsafe { mem::transmute(raw) }),
+            _ => None,
+        }
+    }
+
+    fn from_raw_infallible(raw: c_int) -> Self {
+        Self::from_raw(raw).unwrap_or(BinaryOperatorKind::Invalid)
+    }
+}
+
 // Entity ________________________________________
 
 /// An AST entity.
@@ -2342,6 +2397,12 @@ impl<'tu> Entity<'tu> {
     pub fn get_result_type(&self) -> Option<Type<'tu>> {
         unsafe { clang_getCursorResultType(self.raw).map(|t| Type::from_raw(t, self.tu)) }
     }
+
+    #[cfg(feature="clang_17_0")]
+    /// Retrieve the binary operator kind of the current entity.
+    pub fn get_binary_operator(&self) -> Option<BinaryOperatorKind> {
+        unsafe { BinaryOperatorKind::from_raw(clang_getCursorBinaryOperatorKind(self.raw)) }
+    } 
 
     /// Returns whether this AST entity has any attached attributes.
     #[cfg(feature="clang_3_9")]
