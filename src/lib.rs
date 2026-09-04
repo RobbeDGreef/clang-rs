@@ -1960,11 +1960,36 @@ pub struct Entity<'tu> {
     tu: &'tu TranslationUnit<'tu>,
 }
 
+/// Yes, yes. This is very ugly I know, but I want this to work and fast.
+/// So we just hook into the patched libclang here instead of re-exposing it through clang-sys
+unsafe extern "C" {
+    pub fn clang_tokenize_preprocessed(tu: CXTranslationUnit, entity: CXCursor, tokens: *mut *mut CXToken, n_tokens: *mut c_uint);
+}
+
 impl<'tu> Entity<'tu> {
     //- Constructors -----------------------------
 
     fn from_raw(raw: CXCursor, tu: &'tu TranslationUnit<'tu>) -> Entity<'tu> {
         Entity { raw, tu }
+    }
+
+    /// Returns the tokens of this AST entity after preprocessing.
+    pub fn get_postprocessed_expansion_tokens(&self) -> Vec<Token<'tu>> {
+        unsafe {
+            let (mut raw, mut count) = (mem::MaybeUninit::uninit(), mem::MaybeUninit::uninit());
+            clang_tokenize_preprocessed(self.tu.ptr, self.raw, raw.as_mut_ptr(), count.as_mut_ptr());
+            let (raw, count) = (raw.assume_init(), count.assume_init());
+            let raws = if raw.is_null() {
+                &[]
+            } else {
+                slice::from_raw_parts(raw, count as usize)
+            };
+            let tokens = raws.iter().map(|t| Token::from_raw(*t, self.tu)).collect();
+            if !raw.is_null() {
+                clang_disposeTokens(self.tu.ptr, raw, count);
+            }
+            tokens
+        }
     }
 
     //- Accessors --------------------------------
